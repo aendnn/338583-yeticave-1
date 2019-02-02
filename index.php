@@ -12,6 +12,16 @@ $lots = [
     ['name' => 'Куртка для сноуборда DC Mutiny Charocal', 'category' => $categories[3], 'price' => 7500, 'path' => 'img/lot-5.jpg'],
     ['name' => 'Маска Oakley Canopy', 'category' => $categories[5], 'price' => 5400, 'path' => 'img/lot-6.jpg']
 ];
+
+function price($number) {
+    $cost = ceil($number);
+    $cost .= " ₽";
+    if ($number > 1000) {
+        $cost = number_format($number, "0", " ", " ");
+        $cost .= " ₽";
+    }
+    return $cost;
+};
 ?>
 <!DOCTYPE html>
 <html lang="ru">
@@ -87,7 +97,7 @@ $lots = [
                     <div class="lot__state">
                         <div class="lot__rate">
                             <span class="lot__amount">Стартовая цена</span>
-                            <span class="lot__cost"><?=$lot['price']; ?> <b class="rub"></b></span>
+                            <span class="lot__cost"><?=price($lot['price']); ?></span>
                         </div>
                         <div class="lot__timer timer">
                             12:23
