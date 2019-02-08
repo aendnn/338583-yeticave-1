@@ -26,4 +26,12 @@ function include_template($name, $data) {
     return $result;
 };
 
+function time_counter($cur_date, $end_date) {
+    $end_time = date_create($end_date);
+    $cur_time = date_create($cur_date);
+    $date_diff = date_diff($end_time, $cur_time);
+    $time_count = date_interval_format($date_diff, '%H:%I');
+    return $time_count;
+};
+
 ?>
