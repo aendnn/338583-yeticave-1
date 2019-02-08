@@ -30,7 +30,7 @@
                                 <span class="lot__cost"><?=price($lot['price']); ?></span>
                             </div>
                             <div class="lot__timer timer">
-                                12:23
+                                <?=time_counter("now", "tomorrow midnight"); ?>
                             </div>
                         </div>
                     </div>
