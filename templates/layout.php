@@ -27,7 +27,7 @@
                         <img src="img/user.jpg" width="40" height="40" alt="Пользователь">
                     </div>
                     <div class="user-menu__logged">
-                        <p><?=$user_name ?></p>
+                        <p><?=$user_name; ?></p>
                     </div>
                 <?php else: ?>
                     <ul class="user-menu__list">
@@ -87,6 +87,5 @@
             </div>
         </div>
     </footer>
-
 </body>
 </html>

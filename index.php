@@ -5,16 +5,42 @@ $is_auth = rand(0, 1);
 
 $user_name = 'Анна'; // укажите здесь ваше имя
 
-$categories = ['Доски и лыжи', 'Крепления', 'Ботинки', 'Одежда', 'Инструменты', 'Разное'];
-$lots = [
-    ['name' => '2014 Rossignol District Snowboard', 'category' => $categories[0], 'price' => 10999, 'path' => 'img/lot-1.jpg'],
-    ['name' => 'DC Ply Mens 2016/2017 Snowboard', 'category' => $categories[0], 'price' => 159999, 'path' => 'img/lot-2.jpg'],
-    ['name' => 'Крепления Union Contact Pro 2015 года размер L/XL', 'category' => $categories[1], 'price' => 8000, 'path' => 'img/lot-3.jpg'],
-    ['name' => 'Ботинки для сноуборда DC Mutiny Charocal', 'category' => $categories[2], 'price' => 10999, 'path' => 'img/lot-4.jpg'],
-    ['name' => 'Куртка для сноуборда DC Mutiny Charocal', 'category' => $categories[3], 'price' => 7500, 'path' => 'img/lot-5.jpg'],
-    ['name' => 'Маска Oakley Canopy', 'category' => $categories[5], 'price' => 5400, 'path' => 'img/lot-6.jpg']
-];
+$db = ['host' => 'localhost', 'user' => 'root', 'password' => '', 'database' => 'yeticave'];
+$con = mysqli_connect($db['host'], $db['user'], $db['password'], $db['database']);
+mysqli_set_charset($con, "utf8");
 
+if (!$con) {
+    print('Ошибка подключения:' . mysqli_connect_error());
+}
+else {
+    $categories_query = 'SELECT `id`, `name` FROM `categories` ORDER BY `id` ASC';
+    $result_categories = mysqli_query($con, $categories_query);
+
+    if ($result_categories) {
+        $categories = mysqli_fetch_all($result_categories, MYSQLI_ASSOC);
+    }
+    else {
+        $error = mysqli_error($con);
+    };
+
+    $lots_query = 'SELECT `lots`.`id`, `lots`.`title`, `primary_price`, `pic`, `categories`.`name` AS `cat_name` FROM `lots`
+  INNER JOIN `categories` ON `lots`.`cat_id` = `categories`.`id`
+  WHERE `lots`.`date_end` != ?
+        ORDER BY `lots`.`date_create` DESC LIMIT 6';
+    $ts_lot = 'CURRENT_DATE()';
+    $lots = db_get_data($con, $lots_query, [$ts_lot]);
+
+    if ($lots) {
+        $page_content = include_template('index.php', [
+            'lots' => $lots,
+            'categories' => $categories
+        ]);
+    }
+    else {
+        $error = mysqli_error($con);
+        $page_content = include_template('404.php', ['categories' => $categories]);
+    }
+};
 
 $page_content = include_template('index.php', ['categories' => $categories, 'lots' => $lots]);
 $layout_content = include_template('layout.php', [
@@ -24,7 +50,5 @@ $layout_content = include_template('layout.php', [
     'categories' => $categories,
     'page_content' => $page_content
 ]);
-
 print($layout_content);
 ?>
-
