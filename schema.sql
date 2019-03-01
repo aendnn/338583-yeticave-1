@@ -1,8 +1,8 @@
-CREATE DATABASE yeticave
+CREATE DATABASE yeti
 DEFAULT CHARACTER SET utf8
 DEFAULT COLLATE utf8_general_ci;
 
-USE yeticave;
+USE yeti;
 
 CREATE TABLE `categories` (
 `id` INT AUTO_INCREMENT,
