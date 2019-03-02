@@ -77,7 +77,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $registration_result = mysqli_stmt_execute($stmt);
 
         if ($registration_result && empty($errors)) {
-            header("Location: /index.php");
+            header("Location: /login.php");
             exit();
         }
     }
