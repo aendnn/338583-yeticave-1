@@ -1,6 +1,6 @@
 <main>
     <?=include_template('navigation.php', ['categories' => $categories]); ?>
-    <form class="form container <?=isset($errors) ? "form--invalid": ""; ?>" action="sign-up.php" enctype="multipart/form-data" method="post"> <!-- form--invalid -->
+    <form class="form container <?=!empty($errors) ? "form--invalid": ""; ?>" action="sign-up.php" enctype="multipart/form-data" method="post"> <!-- form--invalid -->
         <h2>Регистрация нового аккаунта</h2>
         <?php
         $classname = isset($errors['email']) ? "form__item--invalid" : "";

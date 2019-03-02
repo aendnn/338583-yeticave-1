@@ -1,5 +1,11 @@
 <main>
     <?=include_template('navigation.php', ['categories' => $categories]); ?>
+    <?php if (!isset($_SESSION['user'])): ?>
+    <section class="lot-item container">
+        <h2>403 Отказано в доступе</h2>
+        <p>Авторизуйтесь, чтобы просматривать данную страницу</p>
+    </section>
+    <?php else: ?>
     <form class="form form--add-lot container <?=isset($errors) ? "form--invalid": ""; ?>" action="add.php" method="post" enctype="multipart/form-data">
         <h2>Добавление лота</h2>
         <div class="form__container-two">
@@ -92,4 +98,5 @@
         <span class="form__error form__error--bottom">Пожалуйста, исправьте ошибки в форме.</span>
         <button type="submit" class="button">Добавить лот</button>
     </form>
+    <?php endif; ?>
 </main>
