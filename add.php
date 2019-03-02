@@ -3,7 +3,6 @@ require_once("db.php");
 require_once("data.php");
 require_once("functions.php");
 
-
 if (!$con) {
     print('Ошибка подключения:' . mysqli_connect_error());
 }
@@ -111,6 +110,11 @@ else {
         $page_content = include_template('add.php', ['categories' => $categories]);
     };
 }
+
+if (!isset($_SESSION['user'])) {
+    $error_403 = http_response_code(403);
+}
+$page_content = include_template('add.php', ['categories' => $categories]);
 $layout_content = include_template('layout.php', [
     'page_content' => $page_content,
     'title' => 'Добавление лота',
