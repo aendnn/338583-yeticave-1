@@ -1,27 +1,14 @@
 <?php
 require_once("db.php");
-require_once("data.php");
+require_once("init.php");
 require_once("functions.php");
 
 $errors = [];
 $login = [];
 
-if (!$con) {
-    print('Ошибка подключения:' . mysqli_connect_error());
-}
+$categories = get_categories($con);
 
-else {
-$categories_query = 'SELECT `id`, `name` FROM `categories` ORDER BY `id` ASC';
-$result_categories = mysqli_query($con, $categories_query);
-
-if ($result_categories) {
-    $categories = mysqli_fetch_all($result_categories, MYSQLI_ASSOC);
-}
-else {
-    $error = mysqli_error($con);
-}
-
-if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $login = $_POST['login'];
     $required = ['email', 'password'];
     $errors = [];
@@ -58,10 +45,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         if (!count($errors)) {
             header("Location: /index.php");
             exit();
-            }
+        }
         else {
             $page_content = include_template('login.php', ['errors' => $errors, 'login' => $login, 'categories' => $categories]);
-        }
         }
     }
 }
@@ -70,9 +56,6 @@ $page_content = include_template('login.php', ['categories' => $categories, 'err
 $layout_content = include_template('layout.php', [
     'page_content' => $page_content,
     'title' => 'Вход на сайт',
-    'is_auth' => $is_auth,
-    'user_name' => $user_name,
-    'user_avatar' => $user_avatar,
     'categories' => $categories
 ]);
 

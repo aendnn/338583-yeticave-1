@@ -1,28 +1,15 @@
 <?php
 require_once("db.php");
-require_once("data.php");
+require_once("init.php");
 require_once("functions.php");
 
 $errors = [];
 $dict = [];
 $registration = [];
 
-if (!$con) {
-    print('Ошибка подключения:' . mysqli_connect_error());
-}
-else {
-    $categories_query = 'SELECT `id`, `name` FROM `categories` ORDER BY `id` ASC';
-    $result_categories = mysqli_query($con, $categories_query);
+$categories = get_categories($con);
 
-    if ($result_categories) {
-        $categories = mysqli_fetch_all($result_categories, MYSQLI_ASSOC);
-    } else {
-        $error = mysqli_error($con);
-    }
-}
-
-
-if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $registration = $_POST['signup'];
     $errors = [];
     $required = ['email', 'password', 'username', 'contacts'];
@@ -58,23 +45,16 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             }
         }
     }
+    $email = $registration['email'];
+    $email_result = get_user_email($con, $email);
 
+    if (mysqli_num_rows($email_result) > 0) {
+        $errors['email'] = 'Пользователь с таким email уже существует';
+    }
 
     if (empty($errors)) {
-        $email = $registration['email'];
-        $sql_email = "SELECT `id` FROM `users` WHERE `email` = ?";
-        $email_query = db_get_prepare_stmt($con, $sql_email, [$email]);
-        $email_object = mysqli_stmt_execute($email_query);
-        $email_result = mysqli_stmt_get_result($email_query);
-
-        if (mysqli_num_rows($email_result) > 0) {
-            $errors['email'] = 'Пользователь с таким email уже существует';
-        }
         $password = password_hash($registration['password'], PASSWORD_DEFAULT);
-        $sql_registration = "INSERT INTO `users` (`email`, `name`, `password`, `contacts`, `avatar`, `dt_add`) 
-                                VALUES (?, ?, ?, ?, ?, NOW())";
-        $stmt = db_get_prepare_stmt($con, $sql_registration, [$registration['email'], $registration['username'], $password, $registration['contacts'], $_POST['avatar']]);
-        $registration_result = mysqli_stmt_execute($stmt);
+        $registration_result = reg_user($con, $registration, $password);
 
         if ($registration_result && empty($errors)) {
             header("Location: /login.php");
@@ -87,9 +67,6 @@ $page_content = include_template('sign-up.php', ['registration' => $registration
 $layout_content = include_template('layout.php', [
     'page_content' => $page_content,
     'title' => 'Регистрация нового аккаунта',
-    'is_auth' => $is_auth,
-    'user_name' => $user_name,
-    'user_avatar' => $user_avatar,
     'categories' => $categories
 ]);
 

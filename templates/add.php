@@ -6,7 +6,7 @@
         <p>Авторизуйтесь, чтобы просматривать данную страницу</p>
     </section>
     <?php else: ?>
-    <form class="form form--add-lot container <?=isset($errors) ? "form--invalid": ""; ?>" action="add.php" method="post" enctype="multipart/form-data">
+    <form class="form form--add-lot container <?=!empty($errors) ? "form--invalid": ""; ?>" action="add.php" method="post" enctype="multipart/form-data">
         <h2>Добавление лота</h2>
         <div class="form__container-two">
             <?php
@@ -29,7 +29,7 @@
                 <select id="category" name="category">
                     <option>Выберите категорию</option>
                     <?php foreach ($categories as $cat): ?>
-                        <option value="<?=$cat['id'];?>"<?php if($cat['id'] == $value): echo ' selected'; endif;?>><?=$cat['name']?></option>
+                        <option value="<?=$cat['id'];?>"<?php if($cat['id'] === $value): echo ' selected'; endif;?>><?=$cat['name']?></option>
                     <?php endforeach; ?>
                 </select>
                 <span class="form__error"><?=$error; ?></span>
