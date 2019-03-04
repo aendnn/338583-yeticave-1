@@ -1,23 +1,17 @@
 <?php
 require_once("db.php");
-require_once("data.php");
+require_once("init.php");
 require_once("functions.php");
 
-if (!$con) {
-    print('Ошибка подключения:' . mysqli_connect_error());
-}
-else {
-    $categories_query = 'SELECT `id`, `name` FROM `categories` ORDER BY `id` ASC';
-    $result_categories = mysqli_query($con, $categories_query);
+$lot = [];
+$errors = [];
+$dict = [];
+$add_lot = [];
 
-    if ($result_categories) {
-        $categories = mysqli_fetch_all($result_categories, MYSQLI_ASSOC);
-    } else {
-        $error = mysqli_error($con);
-    }
+$categories = get_categories($con);
 
 // проверка отправки формы
-    if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // здесь будут храниться значения из полей
         $add_lot = $_POST;
 
@@ -45,7 +39,7 @@ else {
         }
 
         // если категория со значением 'выберите категорию', значит добавляем ошибку
-        if ($add_lot['category'] == 'Выберите категорию') {
+        if ($add_lot['category'] === 'Выберите категорию') {
             $errors['category'] = 'Выберите категорию';
         }
 
@@ -81,46 +75,24 @@ else {
         }
         // проверяем есть ли ошибки, если да выводим их вместе с формой
         if (!count($errors)) {
-            $add_lot_query = 'INSERT INTO `lots` (`date_create`, `user_id`, `title`, `desc`, `pic`, `date_end`, `primary_price`, `step_bid`, `cat_id`)
-            VALUES (NOW(), ?, ?, ?, ?, ?, ?, ?, ?)';
-            $add_lot_user = 1;
-            $add_lot_prepare = db_get_prepare_stmt($con, $add_lot_query, [$add_lot_user, $add_lot['title'], $add_lot['desc'], $add_lot['lot_img'], $add_lot['date'], $add_lot['price'], $add_lot['step'], $add_lot['category']]);
-            $add_lot = mysqli_stmt_execute($add_lot_prepare);
-
-            if ($add_lot) {
-                $add_lot_id = mysqli_insert_id($con);
-                header("Location: lot.php?id=" . $add_lot_id);
-            } else {
-                $page_content = include_template('add.php', [
-                    'dict' => $dict,
-                    'categories' => $categories
-                ]);
-            }
-        } else {
-            $page_content = include_template('add.php', [
-                'categories' => $categories,
-                'errors' => $errors,
-                'dict' => $dict,
-                'add_lot' => $add_lot
-            ]);
+            $add_lot = add_lot($con, $add_lot);
         }
         // если ошибок нет, добавляем лот в БД и перенаправляем пользователя на страницу с новым лотом
     } // если метод не POST, значит пользователь перешел по ссылке - показываем просто форму для заполнения
     else {
         $page_content = include_template('add.php', ['categories' => $categories]);
     };
-}
 
 if (!isset($_SESSION['user'])) {
     $error_403 = http_response_code(403);
 }
-$page_content = include_template('add.php', ['categories' => $categories]);
+$page_content = include_template('add.php', ['categories' => $categories, 'errors' => $errors,
+    'dict' => $dict,
+    'add_lot' => $add_lot]);
+
 $layout_content = include_template('layout.php', [
     'page_content' => $page_content,
     'title' => 'Добавление лота',
-    'is_auth' => $is_auth,
-    'user_name' => $user_name,
-    'user_avatar' => $user_avatar,
     'categories' => $categories
 ]);
 

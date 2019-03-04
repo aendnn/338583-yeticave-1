@@ -1,52 +1,72 @@
 <?php
 require_once('functions.php');
 require_once('db.php');
-require_once('data.php');
-
+require_once('init.php');
+$lot = [];
 $id = $_GET['id'] ?? '';
+$user_id = [];
+$bid = [];
+$bids = [];
+$errors = [];
+$bid_done = false;
 
-if (!$con) {
-    print('Ошибка подключения:' . mysqli_connect_error());
+$categories = get_categories($con);
+$lot = get_lot($con, $id);
+$bids = get_bids($con, $id);
+
+if (isset($_SESSION['user']['id'])) {
+    $user_id = $_SESSION['user']['id'];
 }
-else {
-    $categories_query = 'SELECT `id`, `name` FROM `categories` ORDER BY `id` ASC';
-    $result_categories = mysqli_query($con, $categories_query);
 
-    if ($result_categories) {
-        $categories = mysqli_fetch_all($result_categories, MYSQLI_ASSOC);
+    if (isset($_SESSION['user'])) {
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $bid = $_POST;
+            $required = ['cost'];
+            $min_cost = $lot[0]['primary_price'] + $lot[0]['step_bid'];
+
+            if (empty($bid['cost'])) {
+                $errors['cost'] = 'Заполните поле';
+            }
+            elseif ($bid['cost'] < $min_cost) {
+                $errors['cost'] = 'Введите минимальную цену';
+            }
+            elseif (!is_numeric($bid['cost']) || $bid['cost'] < 0) {
+                $errors['cost'] = 'Введите целое положительное число';
+            }
+
+            if (empty($errors)) {
+                $bid_result = add_bid($con, $bid, $user_id, $id);
+                header("Refresh: 0");
+            }
+        }
     }
-    else {
-        $error = mysqli_error($con);
+
+    if (!empty($bids)) {
+        foreach ($bids as $bid_user) {
+            if ($bid_user['user_id'] === $user_id) {
+                $bid_done = true;
+
+                if ($bid_done) {
+                    $errors['cost'] = 'Ставка уже сделана';
+                }
+            }
+        }
     }
 
-    $lot_query = 'SELECT `lots`.`title`, `price`, `pic`, `desc`, `step_bid`, `users`.`name`, `categories`.`name` AS `cat_name` FROM `lots`
-    INNER JOIN `categories` ON `lots`.`cat_id` = `categories`.`id`
-    INNER JOIN `users` ON `lots`.`user_id` = `users`.`id`
-    WHERE `lots`.`id` =  ?';
-    $lot_prepared = db_get_prepare_stmt($con, $lot_query, [$id]);
-    $lot_execute = mysqli_stmt_execute($lot_prepared);
-    $lot_object = mysqli_stmt_get_result($lot_prepared);
-
-    if (mysqli_num_rows($lot_object)) {
-        $lot = mysqli_fetch_all($lot_object, MYSQLI_ASSOC);
-        $page_content = include_template('lot.php', [
-            'lot' => $lot,
-            'categories' => $categories
-        ]);
-    }
-    else {
-        $error = http_response_code(404);
-        $page_content = include_template("404.php", ['categories' => $categories]);
-    };
-
-}
+$page_content = include_template('lot.php', [
+    'lot' => $lot,
+    'categories' => $categories,
+    'errors' => $errors,
+    'bid' => $bid,
+    'bids' => $bids,
+    'bid_done' => $bid_done,
+    'user_id' => $user_id,
+    'id' => $id
+]);
 
 $layout_content = include_template('layout.php', [
     'page_content' => $page_content,
     'title' => 'Лот',
-    'is_auth' => $is_auth,
-    'user_name' => $user_name,
-    'user_avatar' => $user_avatar,
     'categories' => $categories
 ]);
 
