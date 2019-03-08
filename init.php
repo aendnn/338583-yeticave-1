@@ -1,7 +1,6 @@
 <?php
 session_start();
 
-if (!$con) {
+if (!$connect) {
     print('Ошибка подключения:' . mysqli_connect_error());
 }
-?>

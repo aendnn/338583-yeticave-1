@@ -8,8 +8,8 @@
                 <div class="lot-item__image">
                     <img src="<?=$item['pic']; ?>" width="730" height="548" alt="Сноуборд">
                 </div>
-                <p class="lot-item__category">Категория: <span><?=$item['cat_name']; ?></span></p>
-                <p class="lot-item__description"><?=$item['desc']; ?></p>
+                <p class="lot-item__category">Категория: <span><?=esc($item['cat_name']); ?></span></p>
+                <p class="lot-item__description"><?=esc($item['desc']); ?></p>
             </div>
             <div class="lot-item__right">
                 <div class="lot-item__state">
@@ -24,7 +24,7 @@
                                 <?=esc($lot[0]['primary_price']); ?></span>
                             <?php else: ?>
                             <span class="lot-item__cost">
-                                <?=$bids[0]['max_bid'] + $lot[0]['primary_price']; ?></span>
+                                <?=esc($bids[0]['max_bid'] + $lot[0]['primary_price']); ?></span>
                             <?php endif; ?>
                         </div>
                         <div class="lot-item__min-cost">

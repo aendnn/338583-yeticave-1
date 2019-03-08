@@ -7,7 +7,7 @@ $errors = [];
 $dict = [];
 $registration = [];
 
-$categories = get_categories($con);
+$categories = get_categories($connect);
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $registration = $_POST['signup'];
@@ -27,26 +27,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     if (isset($_FILES['avatar']['tmp_name']) && $_FILES['avatar']['tmp_name'] !== 'Null') {
-        $tmp_name = $_FILES['avatar']['tmp_name'];
-        $file_name = $_FILES['avatar']['name'];
-
-        if (!empty($_FILES['avatar']['name'])) {
-            // узнаем MIME-тип файла
-            $file_open = finfo_open(FILEINFO_MIME_TYPE);
-            $file_info = finfo_file($file_open, $tmp_name);
-
-            // сравниваем с нужными форматами изображений, если форматы не сходятся, записываем ошибку
-            if ($file_info !== 'image/png' && $file_info !== 'image/jpeg') {
-                $errors['avatar'] = 'Загрузите фотографию в формате PNG/JPG';
-            } // если проверка прошла успешно, перемещаем файл из временной папки
-            else {
-                move_uploaded_file($tmp_name, 'img/' . $file_name);
-                $_POST['avatar'] = 'img/' . $file_name;
-            }
-        }
+        $_POST['avatar'] = upload_file($_FILES['avatar']['tmp_name'], $_FILES['avatar']['name'], $_POST['avatar']);
     }
+
     $email = $registration['email'];
-    $email_result = get_user_email($con, $email);
+    $email_result = get_user_email($connect, $email);
 
     if (mysqli_num_rows($email_result) > 0) {
         $errors['email'] = 'Пользователь с таким email уже существует';
@@ -54,7 +39,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if (empty($errors)) {
         $password = password_hash($registration['password'], PASSWORD_DEFAULT);
-        $registration_result = reg_user($con, $registration, $password);
+        $registration_result = reg_user($connect, $registration, $password);
 
         if ($registration_result && empty($errors)) {
             header("Location: /login.php");
@@ -71,5 +56,3 @@ $layout_content = include_template('layout.php', [
 ]);
 
 print($layout_content);
-
-?>

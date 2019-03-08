@@ -27,9 +27,9 @@
             <div class="form__item <?=$classname;?>">
                 <label for="category">Категория</label>
                 <select id="category" name="category">
-                    <option>Выберите категорию</option>
+                    <option value="0">Выберите категорию</option>
                     <?php foreach ($categories as $cat): ?>
-                        <option value="<?=$cat['id'];?>"<?php if($cat['id'] === $value): echo ' selected'; endif;?>><?=$cat['name']?></option>
+                        <option value="<?=esc($cat['id']);?>"<?php if($cat['id'] === $value): echo ' selected'; endif;?>><?=esc($cat['name'])?></option>
                     <?php endforeach; ?>
                 </select>
                 <span class="form__error"><?=$error; ?></span>

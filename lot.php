@@ -10,9 +10,9 @@ $bids = [];
 $errors = [];
 $bid_done = false;
 
-$categories = get_categories($con);
-$lot = get_lot($con, $id);
-$bids = get_bids($con, $id);
+$categories = get_categories($connect);
+$lot = get_lot($connect, $id);
+$bids = get_bids($connect, $id);
 
 if (isset($_SESSION['user']['id'])) {
     $user_id = $_SESSION['user']['id'];
@@ -35,7 +35,7 @@ if (isset($_SESSION['user']['id'])) {
             }
 
             if (empty($errors)) {
-                $bid_result = add_bid($con, $bid, $user_id, $id);
+                $bid_result = add_bid($connect, $bid, $user_id, $id);
                 header("Refresh: 0");
             }
         }
@@ -71,4 +71,3 @@ $layout_content = include_template('layout.php', [
 ]);
 
 print($layout_content);
-?>

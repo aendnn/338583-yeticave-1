@@ -3,7 +3,7 @@ require_once('db.php');
 require_once("init.php");
 require_once("functions.php");
 
-$categories = get_categories($con);
+$categories = get_categories($connect);
 
 $page_content = include_template('404.php', ['categories' => $categories]);
 $layout_content = include_template('layout.php', [
@@ -13,4 +13,4 @@ $layout_content = include_template('layout.php', [
 ]);
 
 print($layout_content);
-?>
+

@@ -6,7 +6,7 @@ require_once("functions.php");
 $errors = [];
 $login = [];
 
-$categories = get_categories($con);
+$categories = get_categories($connect);
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $login = $_POST['login'];
@@ -25,7 +25,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     else {
         $email = $login['email'];
         $sql_login = "SELECT * FROM `users` WHERE `email` = ?";
-        $user_query = db_get_prepare_stmt($con, $sql_login, [$email]);
+        $user_query = db_get_prepare_stmt($connect, $sql_login, [$email]);
         $user_object = mysqli_stmt_execute($user_query);
         $user_result = mysqli_stmt_get_result($user_query);
 
@@ -60,4 +60,3 @@ $layout_content = include_template('layout.php', [
 ]);
 
 print($layout_content);
-?>

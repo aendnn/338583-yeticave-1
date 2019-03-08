@@ -61,8 +61,8 @@ function bid_time ($bid_date) {
     return $ago;
 }
 
-function db_get_prepare_stmt($con, $sql, $data = []) {
-    $stmt = mysqli_prepare($con, $sql);
+function db_get_prepare_stmt($connect, $sql, $data = []) {
+    $stmt = mysqli_prepare($connect, $sql);
 
     if ($data) {
         $types = '';
@@ -97,9 +97,9 @@ function db_get_prepare_stmt($con, $sql, $data = []) {
 };
 
 // функция на получение записей
-function db_get_data($con, $sql, $data = []) {
+function db_get_data($connect, $sql, $data = []) {
     $result = [];
-    $stmt = db_get_prepare_stmt($con, $sql, $data);
+    $stmt = db_get_prepare_stmt($connect, $sql, $data);
     mysqli_stmt_execute($stmt);
     $res = mysqli_stmt_get_result($stmt);
 
@@ -109,51 +109,72 @@ function db_get_data($con, $sql, $data = []) {
     return $result;
 };
 // функция на добавление записей
-function db_insert_data($con, $sql, $data = []) {
-    $stmt = db_get_prepare_stmt($con, $sql, $data);
+function db_insert_data($connect, $sql, $data = []) {
+    $stmt = db_get_prepare_stmt($connect, $sql, $data);
     mysqli_stmt_execute($stmt);
     $result = mysqli_stmt_get_result($stmt);
 
     if ($result) {
-        $result = mysqli_insert_id($con);
+        $result = mysqli_insert_id($connect);
     }
     return $result;
 };
 
-function get_categories ($con) {
+function upload_file ($tmp_name, $file_name, $file_path) {
+    if (!empty($file_name)) {
+        // узнаем MIME-тип файла
+        $file_open = finfo_open(FILEINFO_MIME_TYPE);
+        $file_info = finfo_file($file_open, $tmp_name);
+
+        // сравниваем с нужными форматами изображений, если форматы не сходятся, записываем ошибку
+        if ($file_info !== 'image/png' && $file_info !== 'image/jpeg') {
+            $errors = 'Загрузите фотографию в формате PNG/JPG';
+            return $errors;
+        } // если проверка прошла успешно, перемещаем файл из временной папки
+        else {
+            move_uploaded_file($tmp_name, 'img/' . $file_name);
+            $file_path = 'img/' . $file_name;
+        }
+    }
+    return $file_path;
+}
+
+function get_categories ($connect) {
     $categories_query = 'SELECT `id`, `name` FROM `categories` ORDER BY `id` ASC';
-    $result_categories = mysqli_query($con, $categories_query);
+    $result_categories = mysqli_query($connect, $categories_query);
 
     if ($result_categories) {
         $categories = mysqli_fetch_all($result_categories, MYSQLI_ASSOC);
         return $categories;
     }
     else {
-        $error = mysqli_error($con);
+        $error = mysqli_error($connect);
+        return $error;
     }
 };
 
-function get_all_lots ($con) {
+function get_all_lots ($connect) {
     $lots_query = 'SELECT `lots`.`id`, `lots`.`title`, `primary_price`, `pic`, `categories`.`name` AS `cat_name` FROM `lots`
   INNER JOIN `categories` ON `lots`.`cat_id` = `categories`.`id`
   WHERE `lots`.`date_end` != ?
         ORDER BY `lots`.`date_create` DESC LIMIT 6';
-    $ts_lot = 'CURRENT_DATE()';
-    $lots = db_get_data($con, $lots_query, [$ts_lot]);
+    $now = 'CURRENT_DATE()';
+    $lots = db_get_data($connect, $lots_query, [$now]);
 
     if (!$lots) {
-        $error = mysqli_error($con);
+        $error = mysqli_error($connect);
+        return $error;
     }
     return $lots;
 }
 
-function get_lot ($con, $id) {
+function get_lot ($connect, $id) {
     $lot_query = 'SELECT `lots`.`id`, `lots`.`title`, `primary_price`, `price`, `lots`.`date_end`, `lots`.`user_id`, `pic`, `desc`, `step_bid`, `users`.`name`, `categories`.`name` AS `cat_name` FROM `lots`
     INNER JOIN `categories` ON `lots`.`cat_id` = `categories`.`id`
     INNER JOIN `users` ON `lots`.`user_id` = `users`.`id`
     WHERE `lots`.`id` =  ?';
-    $lot_prepared = db_get_prepare_stmt($con, $lot_query, [$id]);
-    $lot_execute = mysqli_stmt_execute($lot_prepared);
+    $lot_prepared = db_get_prepare_stmt($connect, $lot_query, [$id]);
+    mysqli_stmt_execute($lot_prepared);
     $lot_object = mysqli_stmt_get_result($lot_prepared);
 
     if (mysqli_num_rows($lot_object)) {
@@ -166,20 +187,21 @@ function get_lot ($con, $id) {
     return $lot;
 }
 
-function add_lot ($con, $add_lot) {
+function add_lot ($connect, $add_lot) {
     $add_lot_query = 'INSERT INTO `lots` (`date_create`, `user_id`, `title`, `desc`, `pic`, `date_end`, `primary_price`, `step_bid`, `cat_id`)
             VALUES (NOW(), ?, ?, ?, ?, ?, ?, ?, ?)';
-    $add_lot_prepare = db_get_prepare_stmt($con, $add_lot_query, [$_SESSION['user']['id'], $add_lot['title'], $add_lot['desc'], $add_lot['lot_img'], $add_lot['date'], $add_lot['price'], $add_lot['step'], $add_lot['category']]);
+    $add_lot_prepare = db_get_prepare_stmt($connect, $add_lot_query, [$_SESSION['user']['id'], $add_lot['title'], $add_lot['desc'], $_POST['lot_img'], $add_lot['date'], $add_lot['price'], $add_lot['step'], $add_lot['category']]);
     $add_lot = mysqli_stmt_execute($add_lot_prepare);
 
     if ($add_lot) {
-        $add_lot_id = mysqli_insert_id($con);
+        $add_lot_id = mysqli_insert_id($connect);
         header("Location: lot.php?id=" . $add_lot_id);
+        return $add_lot_id;
     }
     return $add_lot;
 }
 
-function get_bids ($con, $id) {
+function get_bids ($connect, $id) {
     $bids_query = 'SELECT `bids`.`id`, `bids`.`date_bid`, `bids`.`sum_bid`, MAX(`bids`.`sum_bid`) AS `max_bid`, `bids`.`user_id`, `users`.`name` AS `user_name` FROM `bids`
                    INNER JOIN `users` ON `bids`.`user_id` = `users`.`id` 
                    INNER JOIN `lots` ON `bids`.`lot_id` = `lots`.`id`
@@ -187,8 +209,8 @@ function get_bids ($con, $id) {
                    GROUP BY `bids`.`id`
                    ORDER BY `bids`.`date_bid` DESC';
 
-    $bids_prepared = db_get_prepare_stmt($con, $bids_query, [$id]);
-    $bids_execute = mysqli_stmt_execute($bids_prepared);
+    $bids_prepared = db_get_prepare_stmt($connect, $bids_query, [$id]);
+    mysqli_stmt_execute($bids_prepared);
     $bids_object = mysqli_stmt_get_result($bids_prepared);
 
     if ($bids_prepared) {
@@ -197,28 +219,27 @@ function get_bids ($con, $id) {
     return $bids;
 }
 
-function get_user_email ($con, $email, $errors) {
+function get_user_email ($connect, $email) {
     $sql_email = "SELECT `id` FROM `users` WHERE `email` = ?";
-    $email_query = db_get_prepare_stmt($con, $sql_email, [$email]);
-    $email_object = mysqli_stmt_execute($email_query);
+    $email_query = db_get_prepare_stmt($connect, $sql_email, [$email]);
+    mysqli_stmt_execute($email_query);
     $email_result = mysqli_stmt_get_result($email_query);
 
     return $email_result;
 }
 
-function reg_user ($con, $registration, $password) {
+function reg_user ($connect, $registration, $password) {
     $sql_registration = "INSERT INTO `users` (`email`, `name`, `password`, `contacts`, `avatar`, `dt_add`) 
                                 VALUES (?, ?, ?, ?, ?, NOW())";
-    $stmt = db_get_prepare_stmt($con, $sql_registration, [$registration['email'], $registration['username'], $password, $registration['contacts'], $_POST['avatar']]);
+    $stmt = db_get_prepare_stmt($connect, $sql_registration, [$registration['email'], $registration['username'], $password, $registration['contacts'], $_POST['avatar']]);
     $registration_result = mysqli_stmt_execute($stmt);
     return $registration_result;
 }
 
-function add_bid ($con, $bid, $user_id, $id){
+function add_bid ($connect, $bid, $user_id, $id){
     $bid_query = 'INSERT INTO `bids` (`date_bid`, `sum_bid`, `user_id`, `lot_id`) VALUES (NOW(), ?, ?, ?)';
-    $bid_stmt = db_get_prepare_stmt($con, $bid_query, [$bid['cost'], $user_id, $id]);
+    $bid_stmt = db_get_prepare_stmt($connect, $bid_query, [$bid['cost'], $user_id, $id]);
     $bid_result = mysqli_stmt_execute($bid_stmt);
 
     return $bid_result;
 }
-?>
