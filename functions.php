@@ -147,10 +147,8 @@ function get_categories ($connect) {
         $categories = mysqli_fetch_all($result_categories, MYSQLI_ASSOC);
         return $categories;
     }
-    else {
-        $error = mysqli_error($connect);
-        return $error;
-    }
+    $error = mysqli_error($connect);
+    return $error;
 };
 
 function get_all_lots ($connect) {
@@ -161,11 +159,11 @@ function get_all_lots ($connect) {
     $now = 'CURRENT_DATE()';
     $lots = db_get_data($connect, $lots_query, [$now]);
 
-    if (!$lots) {
-        $error = mysqli_error($connect);
-        return $error;
+    if ($lots) {
+        return $lots;
     }
-    return $lots;
+    $error = mysqli_error($connect);
+    return $error;
 }
 
 function get_lot ($connect, $id) {
@@ -179,12 +177,9 @@ function get_lot ($connect, $id) {
 
     if (mysqli_num_rows($lot_object)) {
         $lot = mysqli_fetch_all($lot_object, MYSQLI_ASSOC);
+        return $lot;
     }
-    else {
-        $error = http_response_code(404);
-        header("Location: /404.php");
-    };
-    return $lot;
+    header("Location: /404.php");
 }
 
 function add_lot ($connect, $add_lot) {
@@ -192,12 +187,6 @@ function add_lot ($connect, $add_lot) {
             VALUES (NOW(), ?, ?, ?, ?, ?, ?, ?, ?)';
     $add_lot_prepare = db_get_prepare_stmt($connect, $add_lot_query, [$_SESSION['user']['id'], $add_lot['title'], $add_lot['desc'], $_POST['lot_img'], $add_lot['date'], $add_lot['price'], $add_lot['step'], $add_lot['category']]);
     $add_lot = mysqli_stmt_execute($add_lot_prepare);
-
-    if ($add_lot) {
-        $add_lot_id = mysqli_insert_id($connect);
-        header("Location: lot.php?id=" . $add_lot_id);
-        return $add_lot_id;
-    }
     return $add_lot;
 }
 
@@ -233,6 +222,7 @@ function reg_user ($connect, $registration, $password) {
                                 VALUES (?, ?, ?, ?, ?, NOW())";
     $stmt = db_get_prepare_stmt($connect, $sql_registration, [$registration['email'], $registration['username'], $password, $registration['contacts'], $_POST['avatar']]);
     $registration_result = mysqli_stmt_execute($stmt);
+
     return $registration_result;
 }
 

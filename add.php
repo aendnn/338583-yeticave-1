@@ -7,7 +7,6 @@ $lot = [];
 $errors = [];
 $dict = [];
 $add_lot = [];
-
 $categories = get_categories($connect);
 
 // проверка отправки формы
@@ -47,8 +46,7 @@ $categories = get_categories($connect);
             $errors['step'] = 'Заполните поле корректными данными';
         }
 
-        // если категория со значением 'выберите категорию', значит добавляем ошибку
-        if ($add_lot['category'] === '0') {
+        if ($add_lot['category'] === '0' || $add_lot['category'] > count($categories)) {
             $errors['category'] = 'Выберите категорию';
         }
 
@@ -60,6 +58,12 @@ $categories = get_categories($connect);
         // проверяем есть ли ошибки, если да выводим их вместе с формой
         if (!count($errors)) {
             $add_lot = add_lot($connect, $add_lot);
+
+            if ($add_lot) {
+                $add_lot_id = mysqli_insert_id($connect);
+                header("Location: lot.php?id=" . $add_lot_id);
+                return $add_lot_id;
+            }
         }
         // если ошибок нет, добавляем лот в БД и перенаправляем пользователя на страницу с новым лотом
     } // если метод не POST, значит пользователь перешел по ссылке - показываем просто форму для заполнения
