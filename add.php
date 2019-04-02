@@ -9,6 +9,7 @@ $dict = [];
 $add_lot = [];
 $categories = get_categories($connect);
 
+
 // проверка отправки формы
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // здесь будут храниться значения из полей
@@ -46,7 +47,9 @@ $categories = get_categories($connect);
             $errors['step'] = 'Заполните поле корректными данными';
         }
 
-        if ($add_lot['category'] === '0' || $add_lot['category'] > count($categories)) {
+        $categories_id = array_column($categories, 'id');
+
+        if ($add_lot['category'] === '0' || !in_array($add_lot['category'], $categories_id)) {
             $errors['category'] = 'Выберите категорию';
         }
 

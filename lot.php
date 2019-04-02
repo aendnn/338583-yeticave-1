@@ -14,10 +14,6 @@ $categories = get_categories($connect);
 $lot = get_lot($connect, $id);
 $bids = get_bids($connect, $id);
 
-if (!$lot) {
-    header("Location: /404.php");
-}
-
 if (isset($_SESSION['user']['id'])) {
     $user_id = $_SESSION['user']['id'];
 }

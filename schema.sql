@@ -128,3 +128,4 @@ PRIMARY KEY (`id`)
 
 CREATE INDEX date_bid_ind ON `bids`(`date_bid`);
 CREATE INDEX bid_ind ON `bids`(`sum_bid`);
+CREATE FULLTEXT INDEX search ON lots(`title`,`desc`);
